@@ -119,6 +119,14 @@ func RunLoad(args []string) {
 		log.Fatalf("unable to update cluster IDs: %s", err)
 	}
 	log.Printf("%d words updated", len(words))
+	// assign anchor words
+	for i, c := range clusters {
+		clusters[i].AnchorWord = findClosest(c.NormalizedEmbedding, common.Filter(words, func(word word.WordEmbedding) bool {
+			return word.ClusterID == c.ID
+		})).Word
+	}
+	err = cluster.UpdateClusters(db, clusters)
+	log.Printf("anchor words updated")
 }
 
 func loadFromFile(path string, minIndex int, minFrequency int, minLength int) ([]word.RawRecord, error) {
@@ -223,7 +231,7 @@ func cleanWord(raw string) string {
 }
 
 func findClosest(clusterCenter base.Float64Slice, words []word.WordEmbedding) word.WordEmbedding {
-	closestIndex := -1
+	closestIndex := 0
 	closestSim := base.Distance(clusterCenter, words[0].NormalizedEmbedding)
 	for i, w := range words {
 		sim := base.Distance(clusterCenter, w.NormalizedEmbedding)

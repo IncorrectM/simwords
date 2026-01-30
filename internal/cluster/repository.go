@@ -1,11 +1,31 @@
 package cluster
 
-import "gorm.io/gorm"
+import (
+	"fmt"
+
+	"gorm.io/gorm"
+)
 
 func SaveClusters(db *gorm.DB, clusters []Cluster) error {
 	db.AutoMigrate(&Cluster{})
 	for i := range clusters {
 		db.Create(&clusters[i])
+	}
+
+	return nil
+}
+
+func UpdateClusters(db *gorm.DB, clusters []Cluster) error {
+	// 一般 AutoMigrate 只需启动时执行一次
+	db.AutoMigrate(&Cluster{})
+
+	if len(clusters) == 0 {
+		return nil
+	}
+
+	// 批量保存
+	if err := db.Save(&clusters).Error; err != nil {
+		return fmt.Errorf("failed to update clusters: %w", err)
 	}
 
 	return nil
