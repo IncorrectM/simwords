@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"yggdrasil/sim-words/cmd"
 )
@@ -21,5 +22,9 @@ func main() {
 	switch subcommand {
 	case "load":
 		cmd.RunLoad(flags)
+	case "query":
+		cmd.RunQuery(flags)
+	default:
+		log.Fatalf("unknown command %s", subcommand)
 	}
 }

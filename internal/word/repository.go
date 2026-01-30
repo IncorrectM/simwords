@@ -35,3 +35,12 @@ func BatchUpdateClusterIDs(db *gorm.DB, words []WordEmbedding, clusterIDs []uint
 	}
 	return nil
 }
+
+// SelectByClusterID 返回指定簇内的所有单词
+func SelectByClusterID(db *gorm.DB, clusterID uint) ([]WordEmbedding, error) {
+	var words []WordEmbedding
+	err := db.
+		Where("cluster_id = ?", clusterID).
+		Find(&words).Error
+	return words, err
+}
