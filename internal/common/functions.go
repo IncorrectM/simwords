@@ -7,3 +7,13 @@ func Map[K any, V any](items []K, mapper func(K) V) []V {
 	}
 	return result
 }
+
+func Filter[K any](items []K, filter func(K) bool) []K {
+	result := []K{}
+	for _, item := range items {
+		if filter(item) {
+			result = append(result, item)
+		}
+	}
+	return result
+}

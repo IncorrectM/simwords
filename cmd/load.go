@@ -58,6 +58,8 @@ func RunLoad(args []string) {
 	// parse flags
 	loadCmd.Parse(args)
 
+	// === START LOADING ===
+
 	// initialized db connection
 	db, err := gorm.Open(sqlite.Open(*dbFilePath), &gorm.Config{})
 	if err != nil {
@@ -98,6 +100,7 @@ func RunLoad(args []string) {
 			Embedding: base.Embedding{
 				NormalizedEmbedding: vector,
 			},
+			AnchorWord: findClosest(vector, words).Word,
 		}
 	})
 
@@ -217,4 +220,17 @@ func cleanWord(raw string) string {
 		}
 	}
 	return noSymbol.String()
+}
+
+func findClosest(clusterCenter base.Float64Slice, words []word.WordEmbedding) word.WordEmbedding {
+	closestIndex := -1
+	closestSim := base.Distance(clusterCenter, words[0].NormalizedEmbedding)
+	for i, w := range words {
+		sim := base.Distance(clusterCenter, w.NormalizedEmbedding)
+		if sim < closestSim {
+			closestIndex = i
+			closestSim = sim
+		}
+	}
+	return words[closestIndex]
 }

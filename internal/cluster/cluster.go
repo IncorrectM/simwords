@@ -7,4 +7,5 @@ import (
 type Cluster struct {
 	base.BaseModel
 	base.Embedding
+	AnchorWord string
 }
