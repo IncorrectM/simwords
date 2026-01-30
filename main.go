@@ -24,6 +24,8 @@ func main() {
 		cmd.RunLoad(flags)
 	case "query":
 		cmd.RunQuery(flags)
+	case "serve":
+		cmd.RunServe(flags)
 	default:
 		log.Fatalf("unknown command %s", subcommand)
 	}
