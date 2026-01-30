@@ -19,6 +19,7 @@ func RunQuery(args []string) {
 	l := queryCmd.Int("l", 5, "select top l words in the cluster")
 
 	query := queryCmd.String("q", "", "keyword to query")
+	template := queryCmd.String("t", "", "template to query")
 
 	dbFilePath := queryCmd.String("db", "data.sqlite", "path to storage data")
 
@@ -51,12 +52,23 @@ func RunQuery(args []string) {
 	log.Printf("read %d clusters", len(clusters))
 
 	// 查询
-	results, err := search.QueryWords(db, embd, clusters, *k, *l, false)
-	if err != nil {
-		log.Fatalf("unable to query words: %s", err)
-	}
-	for _, r := range results {
-		log.Printf("%s\t%.2g\t%d", r.Word, r.Similarity, r.Frequency)
+	if *template == "" {
+		results, err := search.QueryWords(db, embd, clusters, *k, *l, false)
+		if err != nil {
+			log.Fatalf("unable to query words: %s", err)
+		}
+		for _, r := range results {
+			log.Printf("%s\t%.2g\t%d", r.Word, r.Similarity, r.Frequency)
+		}
+	} else {
+		log.Printf("query with template: %s", *template)
+		results, err := search.QueryWordsWithTemplate(db, *query, *template, clusters, *k, *l, false)
+		if err != nil {
+			log.Fatalf("unable to query words: %s", err)
+		}
+		for _, r := range results {
+			log.Printf("%s\t%.2g\t%d", r.Word, r.Similarity, r.Frequency)
+		}
 	}
 }
 
