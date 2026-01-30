@@ -8,6 +8,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"unicode"
 	"yggdrasil/sim-words/internal/base"
 	"yggdrasil/sim-words/internal/cluster"
 	"yggdrasil/sim-words/internal/common"
@@ -40,6 +41,13 @@ func RunLoad(args []string) {
 	)
 	loadCmd.IntVar(minFrequency, "mf", 10, "shorthand for -min-frequency")
 
+	minLength := loadCmd.Int(
+		"min-length",
+		0,
+		"keep records with word longer than this value",
+	)
+	loadCmd.IntVar(minLength, "ml", 0, "shorthand for min-length")
+
 	// k-means flags
 	k := loadCmd.Int("k", 10, "k of k-means")
 	kIters := loadCmd.Int("kIters", 1000, "max iterations of k-means")
@@ -58,7 +66,7 @@ func RunLoad(args []string) {
 	log.Printf("database inited")
 
 	// load from given file
-	rawRecords, err := loadFromFile(*inputPath, *minIndex, *minFrequency)
+	rawRecords, err := loadFromFile(*inputPath, *minIndex, *minFrequency, *minLength)
 	if err != nil {
 		log.Fatalf("unable to load from %s: %s", *inputPath, err.Error())
 	}
@@ -110,7 +118,7 @@ func RunLoad(args []string) {
 	log.Printf("%d words updated", len(words))
 }
 
-func loadFromFile(path string, minIndex int, minFrequency int) ([]word.RawRecord, error) {
+func loadFromFile(path string, minIndex int, minFrequency int, minLength int) ([]word.RawRecord, error) {
 	freqMap := make(map[string]int)
 	indexMap := make(map[string]int)
 
@@ -132,9 +140,9 @@ func loadFromFile(path string, minIndex int, minFrequency int) ([]word.RawRecord
 		if err != nil {
 			return nil, err
 		}
-		wordStr := strings.ToLower(parts[1])
+		wordStr := cleanWord(strings.ToLower(parts[1]))
 		frequency, err := strconv.Atoi(parts[2])
-		if index <= minIndex {
+		if index <= minIndex || len(wordStr) < minLength {
 			continue
 		}
 
@@ -199,4 +207,14 @@ func embedWords(words []word.RawRecord, batchSize int) ([]word.WordEmbedding, er
 	}
 
 	return embeddings, nil
+}
+
+func cleanWord(raw string) string {
+	var noSymbol strings.Builder
+	for _, r := range raw {
+		if unicode.IsLetter(r) {
+			noSymbol.WriteRune(r)
+		}
+	}
+	return noSymbol.String()
 }
