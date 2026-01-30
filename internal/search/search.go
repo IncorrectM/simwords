@@ -14,6 +14,7 @@ import (
 type SearchResult struct {
 	Word       string
 	Similarity float64
+	Frequency  int
 }
 
 func CosineSimilarity(a, b base.Float64Slice) float64 {
@@ -91,6 +92,7 @@ func QueryWords(
 				results = append(results, SearchResult{
 					Word:       words[i].Word,
 					Similarity: sim,
+					Frequency:  words[i].Frequency,
 				})
 				count++
 			}

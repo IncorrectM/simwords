@@ -56,7 +56,7 @@ func RunQuery(args []string) {
 		log.Fatalf("unable to query words: %s", err)
 	}
 	for _, r := range results {
-		log.Printf("%s\t%.2g", r.Word, r.Similarity)
+		log.Printf("%s\t%.2g\t%d", r.Word, r.Similarity, r.Frequency)
 	}
 }
 
