@@ -111,32 +111,52 @@ func RunLoad(args []string) {
 }
 
 func loadFromFile(path string, minIndex int, minFrequency int) ([]word.RawRecord, error) {
-	records := []word.RawRecord{}
+	freqMap := make(map[string]int)
+	indexMap := make(map[string]int)
 
 	file, err := os.Open(path)
 	if err != nil {
-		return records, err
+		return nil, err
 	}
 	defer file.Close()
 
-	reader := bufio.NewScanner(file)
-	for reader.Scan() {
-		line := reader.Text()
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := scanner.Text()
 		parts := strings.Split(line, "\t")
 		if len(parts) < 3 {
-			return records, fmt.Errorf("invalid line: %s", line)
+			return nil, fmt.Errorf("invalid line: %s", line)
 		}
 
 		index, err := strconv.Atoi(parts[0])
 		if err != nil {
-			return records, err
+			return nil, err
 		}
-		wordStr := parts[1]
+		wordStr := strings.ToLower(parts[1])
 		frequency, err := strconv.Atoi(parts[2])
-		if index <= minIndex || frequency <= minFrequency {
+		if index <= minIndex {
 			continue
 		}
-		records = append(records, word.RawRecord{Index: index, Word: wordStr, Frequency: frequency})
+
+		freqMap[wordStr] += frequency
+		if _, ok := indexMap[wordStr]; !ok {
+			// 保留第一次出现的下标
+			indexMap[wordStr] = index
+		}
+	}
+
+	records := make([]word.RawRecord, 0, len(freqMap))
+	for w, f := range freqMap {
+		if f <= minFrequency {
+			continue
+		}
+
+		index, ok := indexMap[w]
+		if !ok {
+			return nil, fmt.Errorf("cannot find index for word %s", w)
+		}
+
+		records = append(records, word.RawRecord{Index: index, Word: w, Frequency: f})
 	}
 
 	return records, nil
