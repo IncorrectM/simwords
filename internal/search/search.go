@@ -34,7 +34,7 @@ func CosineSimilarity(a, b base.Float64Slice) float64 {
 func QueryWords(
 	db *gorm.DB,
 	query base.Float64Slice,
-	clusters []cluster.Cluster, // 每个簇里包含 Center 和 Words
+	clusters []cluster.Cluster,
 	topK int,
 	L int,
 	includeSelf bool,
@@ -109,5 +109,8 @@ func QueryWords(
 		return nil, fmt.Errorf("unable to load from bottom clusters: %s", err)
 	}
 
+	sort.Slice(results, func(i, j int) bool {
+		return results[i].Similarity > results[j].Similarity
+	})
 	return results, nil
 }
