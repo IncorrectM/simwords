@@ -51,7 +51,7 @@ func RunQuery(args []string) {
 	log.Printf("read %d clusters", len(clusters))
 
 	// 查询
-	results, err := search.QueryWords(db, embd, clusters, *k, *l)
+	results, err := search.QueryWords(db, embd, clusters, *k, *l, false)
 	if err != nil {
 		log.Fatalf("unable to query words: %s", err)
 	}

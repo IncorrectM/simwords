@@ -36,6 +36,7 @@ func QueryWords(
 	clusters []cluster.Cluster, // 每个簇里包含 Center 和 Words
 	topK int,
 	L int,
+	includeSelf bool,
 ) ([]SearchResult, error) {
 
 	type clusterScore struct {
@@ -61,6 +62,7 @@ func QueryWords(
 
 	// 从 topClusters 中选相似度最高的 L 个单词
 	var results []SearchResult
+	const epsilon = 1e-6
 	selectTopL := func(clist []clusterScore) error {
 		for _, cs := range clist {
 			c := clusters[cs.ClusterIndex]
@@ -73,11 +75,24 @@ func QueryWords(
 				return CosineSimilarity(query, words[i].NormalizedEmbedding) >
 					CosineSimilarity(query, words[j].NormalizedEmbedding)
 			})
-			for i := 0; i < L && i < len(words); i++ {
+
+			count := 0
+			for i := 0; count < L && i < len(words); i++ {
+				sim := CosineSimilarity(query, words[i].NormalizedEmbedding)
+
+				if !includeSelf {
+					// 不允许包含自己，则判断是不是自己
+					if math.Abs(sim-1.0) < epsilon {
+						// 当差值很小时，视作自己
+						continue
+					}
+				}
+
 				results = append(results, SearchResult{
 					Word:       words[i].Word,
-					Similarity: CosineSimilarity(query, words[i].NormalizedEmbedding),
+					Similarity: sim,
 				})
+				count++
 			}
 		}
 		return nil
